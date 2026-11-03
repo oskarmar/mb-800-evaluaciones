@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MB-800 · Prueba de nivel</title>
+<link rel="stylesheet" href="assets/exam.css">
+</head>
+<body>
+<div id="app"><p style="padding:40px;font-family:Segoe UI,Arial">Cargando…</p></div>
+<script src="assets/config.js"></script>
+<script>
+(function () {
+  var lp = (new URLSearchParams(location.search).get('lp') || '').toLowerCase();
+  if (!/^lp[1-5]$/.test(lp)) { location.replace('index.html'); return; }
+  function add(src, cb) { var s = document.createElement('script'); s.src = src; s.onload = cb; s.onerror = function () { document.getElementById('app').innerHTML = '<p style="padding:40px;color:#c50f1f">No se ha podido cargar ' + src + '</p>'; }; document.body.appendChild(s); }
+  var extra = (window.EXAM_CONFIG && window.EXAM_CONFIG.endpoint === 'LOCAL_TEST') ? ['../test/local-grader.js'] : [];
+  var chain = ['data/' + lp + '.js'].concat(extra, ['assets/exam.js']);
+  (function next(i) { if (i < chain.length) add(chain[i], function () { next(i + 1); }); })(0);
+})();
+</script>
+</body>
+</html>

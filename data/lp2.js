@@ -1,0 +1,410 @@
+window.EXAM_DATA = {
+ "id": "lp2",
+ "title": "LP2 · Configure financials in Business Central",
+ "title_es": "LP2 · Configurar las finanzas en Business Central",
+ "cases": {
+  "CS4": {
+   "title": "Case Study: Best for You Organics Company",
+   "en": "<p><b>Background.</b> Best for You Organics Company is a mid-sized wholesale distributor of organic produce and other food items. It expanded from one location to three and has decided to implement Dynamics 365 Business Central.</p>\n<p><b>Requirements – Reporting</b></p><ul><li>The company must be able to answer: Which customers are buying which items? Which salespeople are selling in which regions?</li><li>Salesperson names: SalespersonA, SalespersonB, SalespersonC, SalespersonD. Region names: North, South, East, West.</li></ul>\n<p><b>Requirements – Commission</b></p><ul><li>The company must be able to track salesperson performance within certain regions to calculate commission.</li><li>Each salesperson must be assigned only to a single region.</li><li>This commission data is currently recorded inconsistently, resulting in incorrect combinations that require manual correction. The company must have some level of automation to manage this.</li></ul>\n<p><b>Issue 1</b></p><ul><li>Posted transactions are changing financial reporting in periods that have been closed.</li><li>The new policy will be to restrict all users to posting in the current month only, with the exception of a few employees from the accounting team.</li><li>The calendar fiscal year for company must begin on June 1.</li></ul>",
+   "es": "<p><b>Contexto.</b> Best for You Organics Company es un distribuidor mayorista mediano de productos ecológicos frescos y otros alimentos. Ha pasado de una a tres ubicaciones y ha decidido implantar Dynamics 365 Business Central.</p>\n<p><b>Requisitos – Informes</b></p><ul><li>La empresa debe poder responder: ¿qué clientes compran qué productos? ¿Qué vendedores venden en qué regiones?</li><li>Vendedores: SalespersonA, SalespersonB, SalespersonC, SalespersonD. Regiones: North, South, East, West.</li></ul>\n<p><b>Requisitos – Comisiones</b></p><ul><li>La empresa debe poder seguir el rendimiento de cada vendedor en determinadas regiones para calcular comisiones.</li><li>Cada vendedor solo puede estar asignado a una región.</li><li>Hoy estos datos se registran de forma incoherente, con combinaciones incorrectas que hay que corregir a mano. La empresa necesita cierto grado de automatización.</li></ul>\n<p><b>Problema 1</b></p><ul><li>Los movimientos registrados están cambiando los informes financieros de periodos ya cerrados.</li><li>La nueva política: todos los usuarios solo podrán registrar en el mes actual, salvo algunos empleados del equipo de contabilidad.</li><li>El ejercicio (fiscal year) de la empresa debe empezar el 1 de junio.</li></ul>"
+  }
+ },
+ "questions": [
+  {
+   "id": "lp2q1",
+   "type": "mc",
+   "en": "Monetary amounts for local currency must always display three decimal places.<br><br>In General Ledger Setup, you need to configure the appropriate setup field with the appropriate value.<br><br>What should you do?",
+   "es": "Los importes en divisa local (LCY) deben mostrarse siempre con tres decimales.<br><br>En General Ledger Setup debes configurar el campo adecuado con el valor adecuado.<br><br>¿Qué debes hacer?",
+   "src": "Topic 2 · Q6",
+   "options": [
+    {
+     "id": "A",
+     "en": "Set the value of Amount Decimal Places to 3:3",
+     "es": "Poner Amount Decimal Places = 3:3"
+    },
+    {
+     "id": "B",
+     "en": "Set the value of Unit-Amount Decimal Places to 3:3",
+     "es": "Poner Unit-Amount Decimal Places = 3:3"
+    },
+    {
+     "id": "C",
+     "en": "Set the value of Inv. Rounding Precision to 0.001",
+     "es": "Poner Inv. Rounding Precision = 0.001"
+    },
+    {
+     "id": "D",
+     "en": "Set the value of Unit-Amount Rounding Precision to 0.001",
+     "es": "Poner Unit-Amount Rounding Precision = 0.001"
+    },
+    {
+     "id": "E",
+     "en": "Set the value of Amount Rounding Precision to 0.001",
+     "es": "Poner Amount Rounding Precision = 0.001"
+    }
+   ]
+  },
+  {
+   "id": "lp2q2",
+   "type": "mc",
+   "en": "A company has been using Dynamics 365 Business Central for many years.<br><br>A new accounting manager for the company reviews the chart of accounts. The manager wants to remove some general ledger accounts.<br><br>The Check G/L Account Usage field is selected in the General Ledger Setup.<br><br>You need to assist with the account deletions.<br><br>What is one requirement that enables deletion of a general ledger account?",
+   "es": "Una empresa usa Business Central desde hace años. El nuevo responsable de contabilidad revisa el chart of accounts (plan de cuentas) y quiere eliminar algunas cuentas.<br><br>En General Ledger Setup está marcado <b>Check G/L Account Usage</b>.<br><br>¿Qué requisito permite eliminar una cuenta de contabilidad?",
+   "src": "Topic 2 · Q8",
+   "options": [
+    {
+     "id": "A",
+     "en": "The account cannot be used in any posting groups or posting setup",
+     "es": "La cuenta no puede estar usada en ningún posting group (grupo contable) ni posting setup"
+    },
+    {
+     "id": "B",
+     "en": "The account cannot be used in any account schedule.",
+     "es": "La cuenta no puede estar usada en ningún account schedule (financial report)."
+    },
+    {
+     "id": "C",
+     "en": "The general ledger account cannot allow for direct posting.",
+     "es": "La cuenta no puede permitir Direct Posting."
+    },
+    {
+     "id": "D",
+     "en": "The account must have ledger entries.",
+     "es": "La cuenta debe tener movimientos."
+    }
+   ]
+  },
+  {
+   "id": "lp2q3",
+   "type": "mc",
+   "en": "You are setting up Dynamics 365 Business Central.<br><br>You need to define the Direct Cost Applied account.<br><br>Where should you define the accounts for Direct Cost Applied?",
+   "es": "Estás configurando Business Central y debes definir la cuenta Direct Cost Applied (coste directo aplicado).<br><br>¿Dónde se definen estas cuentas?",
+   "src": "Topic 2 · Q19",
+   "options": [
+    {
+     "id": "A",
+     "en": "Item Cards",
+     "es": "Item Cards (fichas de producto)"
+    },
+    {
+     "id": "B",
+     "en": "Inventory Posting Setup",
+     "es": "Inventory Posting Setup"
+    },
+    {
+     "id": "C",
+     "en": "General Posting Setups",
+     "es": "General Posting Setup"
+    },
+    {
+     "id": "D",
+     "en": "Vendor Posting Groups",
+     "es": "Vendor Posting Groups"
+    }
+   ]
+  },
+  {
+   "id": "lp2q4",
+   "type": "mr",
+   "en": "A company uses Dynamics 365 Business Central.<br><br>An accountant must post sales services in a journal by using a predefined alphanumeric sequence. The accountant is using multiple general journal batches.<br><br>You need to configure invoice numbers for the journal.<br><br>Which two fields should you populate? Each correct answer presents part of the solution.<br><br>NOTE: Each correct selection is worth one point.",
+   "es": "Un contable debe registrar servicios de venta en un diario con una secuencia alfanumérica predefinida y usa varias general journal batches (secciones del diario).<br><br>Debes configurar los números de factura del diario. ¿Qué dos campos debes rellenar?",
+   "src": "Topic 2 · Q36",
+   "options": [
+    {
+     "id": "A",
+     "en": "Posting No. Series field in General Journal Templates",
+     "es": "Campo Posting No. Series en General Journal Templates"
+    },
+    {
+     "id": "B",
+     "en": "No. Series field in General Journal Batches",
+     "es": "Campo No. Series en General Journal Batches"
+    },
+    {
+     "id": "C",
+     "en": "No. Series field in General Journal Templates",
+     "es": "Campo No. Series en General Journal Templates"
+    },
+    {
+     "id": "D",
+     "en": "Posting No. Series field in General Journal Batches",
+     "es": "Campo Posting No. Series en General Journal Batches"
+    }
+   ],
+   "select": 2
+  },
+  {
+   "id": "lp2q5",
+   "type": "mc",
+   "en": "A company based in the United States uses Dynamics 365 Business Central.<br><br>A customer agrees to buy raw materials in the MXN (Mexican Peso) currency.<br><br>You need to set up the currency and exchange rates for this purchase.<br><br>What should you do?",
+   "es": "Una empresa de EE. UU. usa Business Central. Un cliente acepta comprar materias primas en MXN (peso mexicano).<br><br>Debes configurar la divisa y los tipos de cambio. ¿Qué debes hacer?",
+   "src": "Topic 2 · Q40",
+   "options": [
+    {
+     "id": "A",
+     "en": "Do not configure the currency MXN and recalculate all entries in USD before posting.",
+     "es": "No configurar la divisa MXN y recalcular todo en USD antes de registrar."
+    },
+    {
+     "id": "B",
+     "en": "Configure the currency MXN, then set up the Currency Exchange Rate Service to upload currency rates automatically.",
+     "es": "Configurar la divisa MXN y después el Currency Exchange Rate Service para cargar los tipos de cambio automáticamente."
+    },
+    {
+     "id": "C",
+     "en": "Use the currency MXN as a local currency in the system, then set the exchange rates manually before posting.",
+     "es": "Usar MXN como divisa local y fijar los tipos de cambio a mano antes de registrar."
+    },
+    {
+     "id": "D",
+     "en": "Use the currency MXN as an additional reporting currency, then set up the Currency Exchange Rate Service to upload rates automatically.",
+     "es": "Usar MXN como additional reporting currency y configurar el Currency Exchange Rate Service."
+    }
+   ]
+  },
+  {
+   "id": "lp2q6",
+   "type": "mr",
+   "en": "A company uses Dynamics 365 Business Central.<br><br>A finance manager needs to import a bank statement CSV file into Dynamics 365 Business Central.<br><br>You need to configure the system for the file import.<br><br>Which three pages should you use to complete the configuration? Each correct answer presents part of the solution.<br><br>NOTE: Each correct selection is worth one point.",
+   "es": "El responsable financiero necesita importar en Business Central un extracto bancario (bank statement) en CSV.<br><br>¿Qué tres páginas debes usar para configurar la importación?",
+   "src": "Topic 2 · Q42",
+   "options": [
+    {
+     "id": "A",
+     "en": "Payment Reconciliation Journal",
+     "es": "Payment Reconciliation Journal"
+    },
+    {
+     "id": "B",
+     "en": "Bank Account Card",
+     "es": "Bank Account Card (ficha de banco)"
+    },
+    {
+     "id": "C",
+     "en": "Bank Export/Import Setup",
+     "es": "Bank Export/Import Setup"
+    },
+    {
+     "id": "D",
+     "en": "Data Exchange Definition",
+     "es": "Data Exchange Definition"
+    },
+    {
+     "id": "E",
+     "en": "Report Selection - Bank Account",
+     "es": "Report Selection - Bank Account"
+    }
+   ],
+   "select": 3
+  },
+  {
+   "id": "lp2q7",
+   "type": "build",
+   "en": "You set up a new company for a customer.<br><br>The customer requires that two global dimensions be automatically checked at transaction when income statement accounts are used.<br><br>You need to set up the requirements for all income statement accounts at once.<br><br>Which four actions should you perform in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.",
+   "es": "Configuras una company nueva. El cliente exige que, al usar cuentas de la cuenta de resultados (income statement), se compruebe automáticamente que llevan las dos global dimensions (dimensiones globales).<br><br>Debes configurarlo para todas las cuentas de resultados a la vez. ¿Qué cuatro acciones debes realizar y en qué orden?",
+   "src": "Secuencial Topic 2 · Q38",
+   "slots": 4,
+   "actions": [
+    {
+     "id": "A",
+     "en": "Navigate to Account and select <b>Dimensions-Single</b>.",
+     "es": "Ir a Account y seleccionar <b>Dimensions-Single</b>."
+    },
+    {
+     "id": "B",
+     "en": "Set up the Dimension Value Code in General Ledger Setup.",
+     "es": "Configurar el Dimension Value Code en General Ledger Setup."
+    },
+    {
+     "id": "C",
+     "en": "Navigate to Account and select <b>Dimensions-Multiple</b>.",
+     "es": "Ir a Account y seleccionar <b>Dimensions-Multiple</b>."
+    },
+    {
+     "id": "D",
+     "en": "Define the dimension code and change Value Posting to Code Mandatory.",
+     "es": "Definir el código de dimensión y cambiar Value Posting a Code Mandatory."
+    },
+    {
+     "id": "E",
+     "en": "Navigate to Chart of Accounts and select the <b>Filter</b> option in the Income/Balance column.",
+     "es": "Ir a Chart of Accounts y usar <b>Filter</b> en la columna Income/Balance."
+    },
+    {
+     "id": "F",
+     "en": "Select all income statement accounts.",
+     "es": "Seleccionar todas las cuentas de resultados."
+    }
+   ]
+  },
+  {
+   "id": "lp2q8",
+   "type": "mc",
+   "en": "You need to enforce restrictions for salespeople and regions to meet the requirements for Commission.<br><br>What should you do?",
+   "es": "Debes imponer restricciones entre vendedores y regiones para cumplir los requisitos de Comisiones.<br><br>¿Qué debes hacer?",
+   "src": "Case Study 4 · Topic 6 · Q2",
+   "case": "CS4",
+   "options": [
+    {
+     "id": "A",
+     "en": "Set Salesperson and Region dimensions to Limited.",
+     "es": "Poner la combinación de dimensiones Salesperson y Region en Limited."
+    },
+    {
+     "id": "B",
+     "en": "Assign Default Dimension Priorities to list Salesperson first.",
+     "es": "Asignar Default Dimension Priorities para que Salesperson vaya primero."
+    },
+    {
+     "id": "C",
+     "en": "Set the dimension combination between the Salesperson and the Region to Blocked.",
+     "es": "Poner la combinación de dimensiones entre Salesperson y Region en Blocked."
+    },
+    {
+     "id": "D",
+     "en": "Add Default Dimensions for Salesperson on Customer Cards.",
+     "es": "Añadir Default Dimensions de Salesperson en las fichas de cliente."
+    }
+   ]
+  },
+  {
+   "id": "lp2q9",
+   "type": "hotspot",
+   "en": "You need to set up a new fiscal year and restrict posting for all users to the current fiscal year.<br><br>Which options should you use? To answer, select the appropriate options in the answer area.<br><br>NOTE: Each correct selection is worth one point.",
+   "es": "Debes configurar un nuevo ejercicio y restringir el registro de todos los usuarios al periodo actual.<br><br>¿Qué opciones debes usar?",
+   "src": "Case Study 4 · Topic 8 · Q1",
+   "case": "CS4",
+   "rowsHeader": [
+    "Requirement",
+    "Action"
+   ],
+   "rows": [
+    {
+     "en": "Set up a new fiscal year.",
+     "es": "Configurar un nuevo ejercicio.",
+     "options": [
+      {
+       "id": "a",
+       "en": "Select Close Year",
+       "es": "Seleccionar Close Year"
+      },
+      {
+       "id": "b",
+       "en": "Select Create Year",
+       "es": "Seleccionar Create Year"
+      },
+      {
+       "id": "c",
+       "en": "Select Fiscal Year Balance",
+       "es": "Seleccionar Fiscal Year Balance"
+      },
+      {
+       "id": "d",
+       "en": "Select Inventory Period",
+       "es": "Seleccionar Inventory Period"
+      }
+     ]
+    },
+    {
+     "en": "Define the fiscal year start date.",
+     "es": "Definir la fecha de inicio del ejercicio.",
+     "options": [
+      {
+       "id": "a",
+       "en": "Accept the default New Fiscal Year",
+       "es": "Aceptar el New Fiscal Year por defecto"
+      },
+      {
+       "id": "b",
+       "en": "Check Closed for all rows except for June 1",
+       "es": "Marcar Closed en todas las filas salvo el 1 de junio"
+      },
+      {
+       "id": "c",
+       "en": "Check New Fiscal Year for June 1",
+       "es": "Marcar New Fiscal Year en el 1 de junio"
+      },
+      {
+       "id": "d",
+       "en": "Clear the default New Fiscal Year",
+       "es": "Quitar el New Fiscal Year por defecto"
+      }
+     ]
+    },
+    {
+     "en": "Restrict posting.",
+     "es": "Restringir el registro.",
+     "options": [
+      {
+       "id": "a",
+       "en": "In General Ledger Setup, set the Allow Posting From and Allow Posting To options to current dates",
+       "es": "En General Ledger Setup, poner Allow Posting From / Allow Posting To en las fechas actuales"
+      },
+      {
+       "id": "b",
+       "en": "In User Setup, set Allow Posting From and Allow Posting To options to current dates",
+       "es": "En User Setup, poner Allow Posting From / Allow Posting To en las fechas actuales"
+      },
+      {
+       "id": "c",
+       "en": "Remove any Permission sets that allow posting",
+       "es": "Quitar los permission sets que permiten registrar"
+      },
+      {
+       "id": "d",
+       "en": "Set the Work Date past the prior month ending date",
+       "es": "Poner la Work Date después del último día del mes anterior"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lp2q10",
+   "type": "drag",
+   "en": "A company is setting up fixed asset tracking in Dynamics 365 Business Central.<br><br>The finance team must be able to track fixed assets in the following ways:<ul><li>Categorize assets to separate tangible and intangible items.</li><li>Group physical assets into specific categories based on their type or usage.</li><li>Track the storage of each asset.</li></ul>You need to configure the fixed asset tracking.<br><br>Which classification type should you use? To answer, move the appropriate classification types to the correct business requirements. You may use each classification type once, more than once, or not at all.<br><br>NOTE: Each correct selection is worth one point.",
+   "es": "Una empresa configura el seguimiento de fixed assets (activos fijos). Finanzas necesita:<ul><li>Clasificar los activos para separar tangibles e intangibles.</li><li>Agrupar los activos físicos en categorías según su tipo o uso.</li><li>Saber dónde está cada activo.</li></ul>¿Qué tipo de clasificación debes usar para cada requisito? Cada tipo puede usarse una vez, varias o ninguna.",
+   "src": "Topic 2 · Q79",
+   "valuesTitle": "Classification types",
+   "targetHeader": [
+    "Business requirement",
+    "Classification type"
+   ],
+   "values": [
+    {
+     "id": "V1",
+     "en": "Fixed Asset Class",
+     "es": "Fixed Asset Class (clase)"
+    },
+    {
+     "id": "V2",
+     "en": "Fixed Asset Subclass",
+     "es": "Fixed Asset Subclass (subclase)"
+    },
+    {
+     "id": "V3",
+     "en": "Fixed Asset Location",
+     "es": "Fixed Asset Location (ubicación)"
+    },
+    {
+     "id": "V4",
+     "en": "Fixed Asset Posting Group",
+     "es": "Fixed Asset Posting Group (grupo contable)"
+    }
+   ],
+   "targets": [
+    {
+     "en": "Categorize assets to separate tangible and intangible items.",
+     "es": "Clasificar los activos para separar tangibles e intangibles."
+    },
+    {
+     "en": "Group physical items into categories.",
+     "es": "Agrupar los activos físicos en categorías."
+    },
+    {
+     "en": "Record the physical place of assets.",
+     "es": "Registrar el lugar físico de los activos."
+    }
+   ]
+  }
+ ]
+};
