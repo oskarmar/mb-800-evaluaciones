@@ -8,6 +8,13 @@
   var state = load() || { name: '', idx: 0, answers: {}, review: {}, start: 0, stage: 'welcome' };
   var ui = { es: lsGet('mb800-es') === '1', progress: true, timer: true, sel: null, buildSel: null };
   var timerId = null;
+  var SIM = !/^lp/.test(D.id);  // simulacros: rango de preguntas y botón Ver respuesta
+
+  var RANGE = (function () {
+    var N = D.questions.length, m = location.search.match(/[?&]from=(\d+)/), n = location.search.match(/[?&]to=(\d+)/);
+    var a = m ? Math.max(1, Math.min(N, +m[1])) : 1, b = n ? Math.max(a, Math.min(N, +n[1])) : N;
+    return [a, b];
+  })();
 
   // ---------- utils ----------
   function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -17,7 +24,9 @@
   function save() { lsSet(STORE, JSON.stringify(state)); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function h(html) { var t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; }
-  function Q() { return D.questions[state.idx]; }
+  function QS() { if (!SIM || !state.from) return D.questions; return D.questions.slice(state.from - 1, state.to); }
+  function num(i) { return (SIM && state.from ? state.from : 1) + i; }
+  function Q() { return QS()[state.idx]; }
   function stripTags(s) { return String(s).replace(/<[^>]+>/g, ''); }
   function optById(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
   function isAnswered(q) {
@@ -32,7 +41,7 @@
     }
     return false;
   }
-  function answeredCount() { return D.questions.filter(isAnswered).length; }
+  function answeredCount() { return QS().filter(isAnswered).length; }
   function elapsed() { return state.start ? Math.floor((Date.now() - state.start) / 1000) : 0; }
   function hms(s) { function p(n) { return (n < 10 ? '0' : '') + n; } return p(Math.floor(s / 3600)) + ' : ' + p(Math.floor(s / 60) % 60) + ' : ' + p(s % 60); }
 
@@ -74,9 +83,9 @@
   }
 
   function topbar(title) {
-    var n = D.questions.length, done = answeredCount();
-    var cases = D.questions.filter(function (q) { return q.case; });
-    var stand = D.questions.filter(function (q) { return !q.case; });
+    var n = QS().length, done = answeredCount();
+    var cases = QS().filter(function (q) { return q.case; });
+    var stand = QS().filter(function (q) { return !q.case; });
     var sDone = stand.filter(isAnswered).length, cDone = cases.filter(isAnswered).length;
     function seg(label, a, b, small) {
       var pct = b ? Math.round(a / b * 100) : 0;
@@ -120,11 +129,12 @@
     var cfgOk = CFG.endpoint && /^https:\/\//.test(CFG.endpoint);
     var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555;font-size:16px">' + esc(D.title_es) + ' · MB-800 Prueba de nivel</div>' +
       '<h2>Instrucciones</h2><ul style="line-height:1.7;margin:0;padding-left:20px">' +
-      '<li>La prueba tiene <b>' + D.questions.length + ' preguntas</b> de los mismos tipos que el examen: multiple choice, multiple response, HOTSPOT, DRAG DROP y Build List Reorder' + (Object.keys(D.cases || {}).length ? ', y alguna de Case Study' : '') + '.</li>' +
+      (SIM ? '<li>El banco tiene <b>' + D.questions.length + ' preguntas</b>. Puedes hacerlas todas o elegir un tramo (por ejemplo, de la 1 a la 20 hoy y de la 21 a la 40 otro día).</li><li>En cada pregunta puedes pulsar <b>Ver respuesta</b> para consultar la solución y su explicación; el instructor verá cuántas has consultado.</li><li>Las preguntas son de' : '<li>La prueba tiene <b>' + D.questions.length + ' preguntas</b> de') + ' los mismos tipos que el examen: multiple choice, multiple response, HOTSPOT, DRAG DROP y Build List Reorder' + (Object.keys(D.cases || {}).length ? ', y alguna de Case Study' : '') + '.</li>' +
       '<li>Cada pregunta bien respondida vale <b>1 punto</b> (en las de varias partes, solo si todo es correcto). Las erróneas no restan.</li>' +
       '<li>Hay que responder <b>todas</b> las preguntas para poder terminar. No hay límite de tiempo.</li>' +
       '<li>Los enunciados están en inglés, como en el examen. El botón <b>ES</b> de la barra lateral muestra la traducción al español.</li>' +
       '<li>Al terminar verás tu puntuación, las respuestas correctas y su explicación. El resultado se envía al instructor.</li></ul>' +
+      (SIM ? '<div class="field range"><b>Preguntas</b> &nbsp;de la <input id="rf" type="number" min="1" max="' + D.questions.length + '" value="' + RANGE[0] + '"> a la <input id="rt" type="number" min="1" max="' + D.questions.length + '" value="' + RANGE[1] + '"> <span style="color:#555">(de ' + D.questions.length + ')</span><span class="err" id="rgErr"></span></div>' : '') +
       '<div class="field"><label for="nm"><b>Nombre y apellidos</b></label><input id="nm" autocomplete="name" maxlength="80" value="' + esc(state.name || '') + '"><span class="err" id="nmErr"></span></div>' +
       (cfgOk ? '' : '<p class="err">Aviso para el instructor: falta configurar la URL del Apps Script en assets/config.js. Sin ella no se podrá corregir ni registrar el intento.</p>') +
       '</section>');
@@ -134,8 +144,13 @@
     f.querySelector('#go').addEventListener('click', function () {
       var v = p.querySelector('#nm').value.trim();
       if (v.length < 3) { p.querySelector('#nmErr').textContent = 'Escribe tu nombre para empezar.'; return; }
-      state = { name: v, idx: 0, answers: {}, review: {}, start: Date.now(), stage: 'exam' };
-      save(); render();
+      var st = { name: v, idx: 0, answers: {}, review: {}, revealed: {}, start: Date.now(), stage: 'exam' };
+      if (SIM) {
+        var a = parseInt(p.querySelector('#rf').value, 10), b = parseInt(p.querySelector('#rt').value, 10), N = D.questions.length;
+        if (!(a >= 1 && b >= a && b <= N)) { p.querySelector('#rgErr').textContent = ' Rango no válido: elige de 1 a ' + N + ' (la primera no puede ser mayor que la última).'; return; }
+        st.from = a; st.to = b;
+      }
+      state = st; save(); render();
     });
     p.querySelector('#nm').addEventListener('keydown', function (e) { if (e.key === 'Enter') f.querySelector('#go').click(); });
     return app;
@@ -145,7 +160,7 @@
   function examView() {
     var q = Q();
     var app = h('<main class="app"></main>');
-    app.appendChild(topbar('Question ' + (state.idx + 1)));
+    app.appendChild(topbar('Question ' + num(state.idx)));
     var box = h('<section class="qbox"></section>');
     if (q.case) {
       var c = D.cases[q.case];
@@ -158,15 +173,26 @@
     var area = h('<div class="answers"></div>');
     renderAnswer(q, area);
     box.appendChild(area);
-    var ctrl = h('<div class="qctrl"><button class="pill" id="rst">' + ICON.reset + ' Reset Answer</button>' +
+    if (SIM && state.revealed && state.revealed[q.id]) box.appendChild(revealBox(q, state.revealed[q.id]));
+    var ctrl = h('<div class="qctrl"><div><button class="pill" id="rst">' + ICON.reset + ' Reset Answer</button>' + (SIM ? ' <button class="pill reveal" id="shw">' + (state.revealed && state.revealed[q.id] && !state.revealed[q.id].hidden ? 'Ocultar respuesta' : 'Ver respuesta') + '</button>' : '') + '</div>' +
       '<div class="checks"><label class="chk"><input type="checkbox" id="rv"' + (state.review[q.id] ? ' checked' : '') + '> Review later</label>' +
       '<label class="chk"><input type="checkbox" id="esChk"' + (ui.es ? ' checked' : '') + '> Mostrar traducción (ES)</label></div></div>');
     box.appendChild(ctrl);
     ctrl.querySelector('#rst').addEventListener('click', function () { delete state.answers[q.id]; ui.sel = null; ui.buildSel = null; save(); render(); });
+    var shw = ctrl.querySelector('#shw');
+    if (shw) shw.addEventListener('click', function () {
+      state.revealed = state.revealed || {};
+      if (state.revealed[q.id]) { state.revealed[q.id].hidden = !state.revealed[q.id].hidden; save(); render(); return; }
+      shw.disabled = true; shw.textContent = 'Cargando…';
+      post({ action: 'reveal', lp: D.id, id: q.id }).then(function (res) {
+        if (!res || !res.ok) throw new Error(res && res.error ? res.error : 'Respuesta no válida');
+        state.revealed[q.id] = { answer: res.answer, expl: res.expl, ref: res.ref, note: res.note }; save(); render();
+      }).catch(function (err) { shw.disabled = false; shw.textContent = 'Ver respuesta'; modal('No disponible', '<p style="margin:0">No se ha podido obtener la respuesta: ' + esc(err.message) + '</p>', 'Cerrar'); });
+    });
     ctrl.querySelector('#rv').addEventListener('change', function (e) { state.review[q.id] = e.target.checked; save(); });
     ctrl.querySelector('#esChk').addEventListener('change', function (e) { ui.es = e.target.checked; lsSet('mb800-es', ui.es ? '1' : '0'); render(); });
     app.appendChild(box);
-    var last = state.idx === D.questions.length - 1;
+    var last = state.idx === QS().length - 1;
     var f = h('<div class="footer"><button class="navbtn" id="prev"' + (state.idx === 0 ? ' disabled' : '') + '><span class="chev l">‹</span>Previous</button>' +
       '<button class="navbtn" id="next">' + (last ? 'Review' : 'Next') + '<span class="chev r">›</span></button></div>');
     f.querySelector('#prev').addEventListener('click', function () { go(state.idx - 1); });
@@ -174,7 +200,7 @@
     app.appendChild(f);
     return app;
   }
-  function go(i) { state.idx = Math.max(0, Math.min(D.questions.length - 1, i)); ui.sel = null; ui.buildSel = null; save(); render(); window.scrollTo(0, 0); }
+  function go(i) { state.idx = Math.max(0, Math.min(QS().length - 1, i)); ui.sel = null; ui.buildSel = null; save(); render(); window.scrollTo(0, 0); }
   function setAns(q, v) { state.answers[q.id] = v; save(); }
 
   function esInline(t) { return ui.es && t ? '<span class="es-inline">' + t + '</span>' : ''; }
@@ -315,10 +341,10 @@
   function reviewView() {
     var app = h('<main class="app"></main>');
     app.appendChild(topbar('Review'));
-    var n = D.questions.length, done = answeredCount();
-    var rows = D.questions.map(function (q, i) {
+    var n = QS().length, done = answeredCount();
+    var rows = QS().map(function (q, i) {
       var ok = isAnswered(q);
-      return '<tr><td><a data-i="' + i + '">Question ' + (i + 1) + '</a></td><td>' + TYPE_LABEL[q.type] + (q.case ? ' · Case Study' : '') + '</td><td>' + (ok ? '<span class="badge ok">Answered</span>' : '<span class="badge ko">Incomplete</span>') + '</td><td>' + (state.review[q.id] ? '<span class="badge flag">Review later</span>' : '') + '</td></tr>';
+      return '<tr><td><a data-i="' + i + '">Question ' + num(i) + '</a></td><td>' + TYPE_LABEL[q.type] + (q.case ? ' · Case Study' : '') + (state.revealed && state.revealed[q.id] ? ' · <i>respuesta vista</i>' : '') + '</td><td>' + (ok ? '<span class="badge ok">Answered</span>' : '<span class="badge ko">Incomplete</span>') + '</td><td>' + (state.review[q.id] ? '<span class="badge flag">Review later</span>' : '') + '</td></tr>';
     }).join('');
     var p = h('<section class="panel"><h1>Review</h1><p>Has respondido <b>' + done + ' de ' + n + '</b> preguntas. Haz clic en una pregunta para volver a ella.' + (done < n ? ' <span class="err">Debes responder todas las preguntas antes de terminar.</span>' : '') + '</p>' +
       '<table class="rv-table"><thead><tr><th>Question</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></section>');
@@ -344,13 +370,26 @@
   }
 
   function tryEnd() {
-    var n = D.questions.length, done = answeredCount();
+    var n = QS().length, done = answeredCount();
     if (done < n) {
-      var miss = D.questions.map(function (q, i) { return isAnswered(q) ? null : (i + 1); }).filter(Boolean).join(', ');
+      var miss = QS().map(function (q, i) { return isAnswered(q) ? null : num(i); }).filter(Boolean).join(', ');
       modal('Faltan respuestas', '<p style="margin:0">Debes responder todas las preguntas. Pendientes: <b>' + miss + '</b>.</p>', 'Ir a Review', function () { state.stage = 'review'; save(); render(); });
       return;
     }
     modal('End Exam', '<p style="margin:0">¿Terminar la prueba y enviarla para corregir? Después no podrás cambiar las respuestas.</p>', 'Terminar', submit, 'Cancelar');
+  }
+
+  function post(payload) {
+    if (CFG.endpoint === 'LOCAL_TEST' && window.LOCAL_GRADER) return Promise.resolve(window.LOCAL_GRADER(payload));
+    if (!CFG.endpoint || !/^https:\/\//.test(CFG.endpoint)) return Promise.reject(new Error('No está configurada la URL del Apps Script (assets/config.js).'));
+    return fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function revealBox(q, r) {
+    if (r.hidden) return h('<div></div>');
+    return h('<div class="reveal-box"><b>Respuesta correcta</b><div>' + describe(q, r.answer) + '</div>' +
+      '<div class="expl"><b>Por qué:</b> ' + r.expl + (r.ref ? ' <br><a href="' + esc(r.ref) + '" target="_blank" rel="noopener">Microsoft Learn ↗</a>' : '') + '</div>' +
+      (r.note ? '<div class="note">Nota: ' + r.note + '</div>' : '') + '</div>');
   }
 
   // ---------- submit ----------
@@ -364,12 +403,8 @@
     var p = h('<section class="panel"><div class="loading"><span class="spin"></span>Corrigiendo y enviando el resultado…</div></section>');
     app.appendChild(p); $app.appendChild(app);
     var payload = { lp: D.id, name: state.name, answers: state.answers, durationSec: dur, ua: navigator.userAgent.slice(0, 120) };
-    var req;
-    if (CFG.endpoint === 'LOCAL_TEST' && window.LOCAL_GRADER) req = Promise.resolve(window.LOCAL_GRADER(payload));
-    else if (!CFG.endpoint || !/^https:\/\//.test(CFG.endpoint)) req = Promise.reject(new Error('No está configurada la URL del Apps Script (assets/config.js).'));
-    else req = fetch(CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
-    req.then(function (res) {
+    if (SIM) { payload.ids = QS().map(function (q) { return q.id; }); payload.revealed = Object.keys(state.revealed || {}); }
+    post(payload).then(function (res) {
       if (!res || !res.ok) throw new Error(res && res.error ? res.error : 'Respuesta no válida del servidor');
       state.result = res; state.durationSec = dur; state.stage = 'results'; save(); render(); window.scrollTo(0, 0);
     }).catch(function (err) {
@@ -396,12 +431,12 @@
     var r = state.result, pct = Math.round(r.score / r.total * 100);
     var app = h('<main class="app"></main>');
     app.appendChild(topbar('Score Report'));
-    var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555">' + esc(r.name || state.name) + ' · ' + new Date().toLocaleDateString('es-ES') + ' · ' + Math.round((state.durationSec || 0) / 60) + ' min</div>' +
+    var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555">' + (SIM && state.from && (state.from > 1 || state.to < D.questions.length) ? 'Preguntas ' + state.from + '–' + state.to + ' · ' : '') + esc(r.name || state.name) + ' · ' + new Date().toLocaleDateString('es-ES') + ' · ' + Math.round((state.durationSec || 0) / 60) + ' min</div>' +
       '<div class="score"><span class="big">' + r.score + ' / ' + r.total + '</span><span class="pct">' + pct + ' %</span></div>' +
       '<p style="margin:0 0 6px">El resultado se ha enviado al instructor. Revisa abajo las respuestas correctas y su explicación' + (ui.es ? '' : ' (pulsa <b>ES</b> para ver también la traducción de enunciados y opciones)') + '.</p></section>');
     r.results.forEach(function (res) {
       var q = optById(D.questions, res.id);
-      var card = h('<div class="res' + (res.correct ? '' : ' ko') + '"><h3>Question ' + res.n + ' <span class="badge ' + (res.correct ? 'ok">✔ Correcta · 1 punto' : 'ko">✘ Incorrecta · 0 puntos') + '</span><span class="src">' + TYPE_LABEL[q.type] + ' · ' + esc(res.src || q.src) + '</span></h3>' +
+      var card = h('<div class="res' + (res.correct ? '' : ' ko') + '"><h3>Question ' + res.n + ' <span class="badge ' + (res.correct ? 'ok">✔ Correcta · 1 punto' : 'ko">✘ Incorrecta · 0 puntos') + '</span>' + (res.revealed ? ' <span class="badge flag">respuesta vista</span>' : '') + '<span class="src">' + TYPE_LABEL[q.type] + ' · ' + esc(res.src || q.src) + '</span></h3>' +
         '<details class="qtext"><summary>Ver enunciado</summary>' + (q.case ? '<p><i>' + esc(D.cases[q.case].title) + '</i></p>' : '') + q.en + (ui.es ? '<div class="es-block">' + q.es + '</div>' : '') + '</details>' +
         '<div class="ans"><b>Tu respuesta</b><div>' + describe(q, state.answers[q.id]) + '</div><b>Respuesta correcta</b><div>' + describe(q, res.answer) + '</div></div>' +
         '<div class="expl"><b>Por qué:</b> ' + res.expl + (res.ref ? ' <br><a href="' + esc(res.ref) + '" target="_blank" rel="noopener">Microsoft Learn ↗</a>' : '') + '</div>' +

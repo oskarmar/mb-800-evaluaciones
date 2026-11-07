@@ -183,3 +183,9 @@ body.hc .qbox,body.hc .panel{border-width:2px}
   .res .ans{grid-template-columns:1fr}
 }
 .panel h2.grp{font-size:17px;margin:28px 0 0;color:var(--navy)}
+.pill.reveal{background:#0f6cbd}.pill.reveal:hover{background:#115ea3}.pill:disabled{opacity:.6;cursor:wait}
+.field.range{display:block;max-width:none}.field.range input{width:80px;margin:0 4px}
+.reveal-box{margin-top:18px;border:1px solid #9fd89f;background:#f1faf1;border-radius:4px;padding:12px 16px;font-size:15.5px}
+.reveal-box ul,.reveal-box ol{margin:6px 0 10px}
+.reveal-box .expl{background:#fff;border:1px solid #d7e0ec;padding:10px 12px;border-radius:4px;margin-top:6px}
+.reveal-box .note{font-size:14px;color:#7a5c00;margin-top:8px}
