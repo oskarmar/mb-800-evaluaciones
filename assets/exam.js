@@ -80,7 +80,7 @@
     var sDone = stand.filter(isAnswered).length, cDone = cases.filter(isAnswered).length;
     function seg(label, a, b, small) {
       var pct = b ? Math.round(a / b * 100) : 0;
-      return '<div class="seg' + (small ? ' small' : '') + '"><span>' + label + (b ? '&nbsp;&nbsp;(' + a + '/' + b + ')' : '') + '</span><div class="bar"' + (small ? '' : ' style="width:' + Math.max(120, b * 26) + 'px"') + '><i style="width:' + (b ? pct : (state.stage === 'review' ? 100 : 0)) + '%' + (b && !a ? ';min-width:0' : '') + '"></i></div></div>';
+      return '<div class="seg' + (small ? ' small' : '') + '"><span>' + label + (b ? '&nbsp;&nbsp;(' + a + '/' + b + ')' : '') + '</span><div class="bar"' + (small ? '' : ' style="width:' + Math.min(320, Math.max(120, b * 26)) + 'px"') + '><i style="width:' + (b ? pct : (state.stage === 'review' ? 100 : 0)) + '%' + (b && !a ? ';min-width:0' : '') + '"></i></div></div>';
     }
     var tb = h('<header class="topbar"><div class="qtitle">' + title + '</div>' +
       '<div class="progress"><div class="lbl">PROGRESS <button class="toggle' + (ui.progress ? '' : ' off') + '" data-t="progress" aria-label="Mostrar progreso"></button></div>' +

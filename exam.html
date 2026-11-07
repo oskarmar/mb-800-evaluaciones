@@ -13,7 +13,7 @@
 <script>
 (function () {
   var lp = (new URLSearchParams(location.search).get('lp') || '').toLowerCase();
-  if (!/^lp[1-5]$/.test(lp)) { location.replace('index.html'); return; }
+  if (!/^(lp[1-5]|t[1-4]|s[1-4]|cs[1-4])$/.test(lp)) { location.replace('index.html'); return; }
   function add(src, cb) { var s = document.createElement('script'); s.src = src; s.onload = cb; s.onerror = function () { document.getElementById('app').innerHTML = '<p style="padding:40px;color:#c50f1f">No se ha podido cargar ' + src + '</p>'; }; document.body.appendChild(s); }
   var extra = (window.EXAM_CONFIG && window.EXAM_CONFIG.endpoint === 'LOCAL_TEST') ? ['../test/local-grader.js'] : [];
   var chain = ['data/' + lp + '.js'].concat(extra, ['assets/exam.js']);

@@ -182,3 +182,4 @@ body.hc .qbox,body.hc .panel{border-width:2px}
   .footer{padding:20px 16px}.navbtn{width:50%}
   .res .ans{grid-template-columns:1fr}
 }
+.panel h2.grp{font-size:17px;margin:28px 0 0;color:var(--navy)}
