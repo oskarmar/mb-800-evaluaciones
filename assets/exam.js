@@ -72,7 +72,7 @@
     sb.addEventListener('click', function (e) {
       var b = e.target.closest('[data-a]'); if (!b) return;
       var a = b.getAttribute('data-a');
-      if (a === 'home') { location.href = 'index.html'; }
+      if (a === 'home') { location.href = SIM ? 'simulacros.html' : 'index.html'; }
       if (a === 'review') { state.stage = 'review'; save(); render(); }
       if (a === 'end') { tryEnd(); }
       if (a === 'es') { ui.es = !ui.es; lsSet('mb800-es', ui.es ? '1' : '0'); render(); }
@@ -446,7 +446,7 @@
     app.appendChild(p);
     var f = h('<div class="footer"><button class="navbtn" id="again">Nuevo intento<span class="chev r">›</span></button><button class="navbtn alt" id="home">Todas las pruebas</button></div>');
     f.querySelector('#again').addEventListener('click', function () { var nm = state.name; lsDel(STORE); state = { name: nm, idx: 0, answers: {}, review: {}, start: 0, stage: 'welcome' }; render(); });
-    f.querySelector('#home').addEventListener('click', function () { location.href = 'index.html'; });
+    f.querySelector('#home').addEventListener('click', function () { location.href = SIM ? 'simulacros.html' : 'index.html'; });
     app.appendChild(f);
     return app;
   }
