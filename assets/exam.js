@@ -8,7 +8,9 @@
   var state = load() || { name: '', idx: 0, answers: {}, review: {}, start: 0, stage: 'welcome' };
   var ui = { es: lsGet('mb800-es') === '1', progress: true, timer: true, sel: null, buildSel: null };
   var timerId = null;
-  var SIM = !/^lp/.test(D.id);  // simulacros: rango de preguntas y botón Ver respuesta
+  var FINAL = D.id === 'final';  // examen final: orden barajado, nota sobre 10, un solo intento
+  var SIM = !/^(lp|final)/.test(D.id);  // simulacros: rango de preguntas y botón Ver respuesta
+  var HOME = SIM ? 'simulacros.html' : 'index.html';
 
   var RANGE = (function () {
     var N = D.questions.length, m = location.search.match(/[?&]from=(\d+)/), n = location.search.match(/[?&]to=(\d+)/);
@@ -24,7 +26,12 @@
   function save() { lsSet(STORE, JSON.stringify(state)); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function h(html) { var t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstChild; }
-  function QS() { if (!SIM || !state.from) return D.questions; return D.questions.slice(state.from - 1, state.to); }
+  function QS() {
+    if (FINAL && state.order) return state.order.map(function (id) { return optById(D.questions, id); });
+    if (!SIM || !state.from) return D.questions; return D.questions.slice(state.from - 1, state.to);
+  }
+  function shuffled(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function gradeTxt(g) { return (Math.round(g * 100) / 100).toFixed(2).replace('.', ','); }
   function num(i) { return (SIM && state.from ? state.from : 1) + i; }
   function Q() { return QS()[state.idx]; }
   function stripTags(s) { return String(s).replace(/<[^>]+>/g, ''); }
@@ -72,7 +79,7 @@
     sb.addEventListener('click', function (e) {
       var b = e.target.closest('[data-a]'); if (!b) return;
       var a = b.getAttribute('data-a');
-      if (a === 'home') { location.href = SIM ? 'simulacros.html' : 'index.html'; }
+      if (a === 'home') { location.href = HOME; }
       if (a === 'review') { state.stage = 'review'; save(); render(); }
       if (a === 'end') { tryEnd(); }
       if (a === 'es') { ui.es = !ui.es; lsSet('mb800-es', ui.es ? '1' : '0'); render(); }
@@ -113,7 +120,7 @@
 
   function render() {
     $app.innerHTML = '';
-    document.title = D.title + ' · Prueba de nivel';
+    document.title = D.title + (FINAL ? '' : ' · Prueba de nivel');
     var shell = h('<div></div>');
     if (state.stage === 'welcome') { shell.appendChild(sidebar()); shell.appendChild(welcome()); }
     else if (state.stage === 'exam') { shell.appendChild(sidebar()); shell.appendChild(examView()); startClock(); }
@@ -127,13 +134,19 @@
     var app = h('<main class="app"></main>');
     app.appendChild(topbar('Welcome'));
     var cfgOk = CFG.endpoint && /^https:\/\//.test(CFG.endpoint);
-    var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555;font-size:16px">' + esc(D.title_es) + ' · MB-800 Prueba de nivel</div>' +
-      '<h2>Instrucciones</h2><ul style="line-height:1.7;margin:0;padding-left:20px">' +
+    var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555;font-size:16px">' + esc(D.title_es) + (FINAL ? '' : ' · MB-800 Prueba de nivel') + '</div>' +
+      '<h2>Instrucciones</h2><ul style="line-height:1.7;margin:0;padding-left:20px">' + (FINAL ?
+      '<li>El examen tiene <b>' + D.questions.length + ' preguntas</b> de los mismos tipos que el examen oficial (multiple choice, Yes/No, multiple response, HOTSPOT y DRAG DROP), en orden aleatorio.</li>' +
+      '<li>Cada pregunta bien respondida vale <b>1 punto</b> (en las de varias partes, solo si todo es correcto). Las erróneas no restan.</li>' +
+      '<li>La nota es sobre <b>10</b> (' + D.questions.length + ' aciertos = 10). Se aprueba con un <b>5</b>. No hay límite de tiempo.</li>' +
+      '<li>Hay que responder <b>todas</b> las preguntas para poder terminar.</li>' +
+      '<li>Los enunciados están en inglés, como en el examen. El botón <b>ES</b> de la barra lateral muestra la traducción al español.</li>' +
+      '<li>Hazlo <b>una sola vez</b>: cada envío queda registrado para el instructor. Al terminar verás tu nota y la corrección.</li></ul>' :
       (SIM ? '<li>El banco tiene <b>' + D.questions.length + ' preguntas</b>. Puedes hacerlas todas o elegir un tramo (por ejemplo, de la 1 a la 20 hoy y de la 21 a la 40 otro día).</li><li>En cada pregunta puedes pulsar <b>Ver respuesta</b> para consultar la solución y su explicación; el instructor verá cuántas has consultado.</li><li>Las preguntas son de' : '<li>La prueba tiene <b>' + D.questions.length + ' preguntas</b> de') + ' los mismos tipos que el examen: multiple choice, multiple response, HOTSPOT, DRAG DROP y Build List Reorder' + (Object.keys(D.cases || {}).length ? ', y alguna de Case Study' : '') + '.</li>' +
       '<li>Cada pregunta bien respondida vale <b>1 punto</b> (en las de varias partes, solo si todo es correcto). Las erróneas no restan.</li>' +
       '<li>Hay que responder <b>todas</b> las preguntas para poder terminar. No hay límite de tiempo.</li>' +
       '<li>Los enunciados están en inglés, como en el examen. El botón <b>ES</b> de la barra lateral muestra la traducción al español.</li>' +
-      '<li>Al terminar verás tu puntuación, las respuestas correctas y su explicación. El resultado se envía al instructor.</li></ul>' +
+      '<li>Al terminar verás tu puntuación, las respuestas correctas y su explicación. El resultado se envía al instructor.</li></ul>') +
       (SIM ? '<div class="field range"><b>Preguntas</b> &nbsp;de la <input id="rf" type="number" min="1" max="' + D.questions.length + '" value="' + RANGE[0] + '"> a la <input id="rt" type="number" min="1" max="' + D.questions.length + '" value="' + RANGE[1] + '"> <span style="color:#555">(de ' + D.questions.length + ')</span><span class="err" id="rgErr"></span></div>' : '') +
       '<div class="field"><label for="nm"><b>Nombre y apellidos</b></label><input id="nm" autocomplete="name" maxlength="80" value="' + esc(state.name || '') + '"><span class="err" id="nmErr"></span></div>' +
       (cfgOk ? '' : '<p class="err">Aviso para el instructor: falta configurar la URL del Apps Script en assets/config.js. Sin ella no se podrá corregir ni registrar el intento.</p>') +
@@ -150,6 +163,7 @@
         if (!(a >= 1 && b >= a && b <= N)) { p.querySelector('#rgErr').textContent = ' Rango no válido: elige de 1 a ' + N + ' (la primera no puede ser mayor que la última).'; return; }
         st.from = a; st.to = b;
       }
+      if (FINAL) st.order = shuffled(D.questions.map(function (q) { return q.id; }));
       state = st; save(); render();
     });
     p.querySelector('#nm').addEventListener('keydown', function (e) { if (e.key === 'Enter') f.querySelector('#go').click(); });
@@ -404,6 +418,7 @@
     app.appendChild(p); $app.appendChild(app);
     var payload = { lp: D.id, name: state.name, answers: state.answers, durationSec: dur, ua: navigator.userAgent.slice(0, 120) };
     if (SIM) { payload.ids = QS().map(function (q) { return q.id; }); payload.revealed = Object.keys(state.revealed || {}); }
+    if (FINAL) payload.order = state.order;
     post(payload).then(function (res) {
       if (!res || !res.ok) throw new Error(res && res.error ? res.error : 'Respuesta no válida del servidor');
       state.result = res; state.durationSec = dur; state.stage = 'results'; save(); render(); window.scrollTo(0, 0);
@@ -432,7 +447,8 @@
     var app = h('<main class="app"></main>');
     app.appendChild(topbar('Score Report'));
     var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555">' + (SIM && state.from && (state.from > 1 || state.to < D.questions.length) ? 'Preguntas ' + state.from + '–' + state.to + ' · ' : '') + esc(r.name || state.name) + ' · ' + new Date().toLocaleDateString('es-ES') + ' · ' + Math.round((state.durationSec || 0) / 60) + ' min</div>' +
-      '<div class="score"><span class="big">' + r.score + ' / ' + r.total + '</span><span class="pct">' + pct + ' %</span></div>' +
+      (FINAL ? '<div class="score"><span class="big">' + gradeTxt(r.grade) + ' / 10</span><span class="pct">' + r.score + ' de ' + r.total + ' aciertos · <b style="color:' + (r.passed ? '#107c10">APROBADO' : '#c50f1f">SUSPENSO') + '</b></span></div>'
+        : '<div class="score"><span class="big">' + r.score + ' / ' + r.total + '</span><span class="pct">' + pct + ' %</span></div>') +
       '<p style="margin:0 0 6px">El resultado se ha enviado al instructor. Revisa abajo las respuestas correctas y su explicación' + (ui.es ? '' : ' (pulsa <b>ES</b> para ver también la traducción de enunciados y opciones)') + '.</p></section>');
     r.results.forEach(function (res) {
       var q = optById(D.questions, res.id);
@@ -444,9 +460,10 @@
       p.appendChild(card);
     });
     app.appendChild(p);
-    var f = h('<div class="footer"><button class="navbtn" id="again">Nuevo intento<span class="chev r">›</span></button><button class="navbtn alt" id="home">Todas las pruebas</button></div>');
+    var f = h(FINAL ? '<div class="footer"></div>' : '<div class="footer"><button class="navbtn" id="again">Nuevo intento<span class="chev r">›</span></button><button class="navbtn alt" id="home">Todas las pruebas</button></div>');
+    if (FINAL) { app.appendChild(f); return app; }
     f.querySelector('#again').addEventListener('click', function () { var nm = state.name; lsDel(STORE); state = { name: nm, idx: 0, answers: {}, review: {}, start: 0, stage: 'welcome' }; render(); });
-    f.querySelector('#home').addEventListener('click', function () { location.href = SIM ? 'simulacros.html' : 'index.html'; });
+    f.querySelector('#home').addEventListener('click', function () { location.href = HOME; });
     app.appendChild(f);
     return app;
   }
