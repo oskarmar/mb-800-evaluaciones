@@ -70,7 +70,7 @@
   function sidebar() {
     var inExam = state.stage === 'exam' || state.stage === 'review';
     var sb = h('<nav class="sidebar" aria-label="Herramientas">' +
-      '<button class="sb-btn" data-a="home" title="Volver a la lista de pruebas">' + ICON.chev + '</button>' +
+      '<button class="sb-btn" data-a="home" title="' + (FINAL ? '' : 'Volver a la lista de pruebas') + '"' + (FINAL ? ' style="cursor:default"' : '') + '>' + ICON.chev + '</button>' +
       (inExam ? '<button class="sb-btn' + (state.stage === 'review' ? ' on' : '') + '" data-a="review" title="Review: estado de todas las preguntas">' + ICON.list + '</button>' : '') +
       (inExam ? '<button class="sb-btn" data-a="end" title="End Exam: terminar y corregir">' + ICON.check + '</button>' : '') +
       '<hr><button class="sb-btn' + (ui.es ? ' on' : '') + '" data-a="es" title="Mostrar/ocultar traducción al español">' + ICON.globe + '<span class="sb-tag">ES</span></button>' +
@@ -79,7 +79,7 @@
     sb.addEventListener('click', function (e) {
       var b = e.target.closest('[data-a]'); if (!b) return;
       var a = b.getAttribute('data-a');
-      if (a === 'home') { location.href = HOME; }
+      if (a === 'home' && !FINAL) { location.href = HOME; }
       if (a === 'review') { state.stage = 'review'; save(); render(); }
       if (a === 'end') { tryEnd(); }
       if (a === 'es') { ui.es = !ui.es; lsSet('mb800-es', ui.es ? '1' : '0'); render(); }
@@ -129,6 +129,9 @@
     while (shell.firstChild) $app.appendChild(shell.firstChild);
   }
 
+  var PTS = '<li>Cada pregunta vale <b>1 punto</b>. En las que tienen varias partes (varias respuestas, HOTSPOT, DRAG DROP), cada parte correcta suma su parte proporcional; las de ordenar acciones (Build List Reorder) solo puntúan si todo el orden es correcto. Las erróneas no restan.</li>';
+  function ptsTxt(x) { return String(Math.round(x * 100) / 100).replace('.', ','); }
+
   // ---------- welcome ----------
   function welcome() {
     var app = h('<main class="app"></main>');
@@ -137,13 +140,13 @@
     var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555;font-size:16px">' + esc(D.title_es) + (FINAL ? '' : ' · MB-800 Prueba de nivel') + '</div>' +
       '<h2>Instrucciones</h2><ul style="line-height:1.7;margin:0;padding-left:20px">' + (FINAL ?
       '<li>El examen tiene <b>' + D.questions.length + ' preguntas</b> de los mismos tipos que el examen oficial (multiple choice, Yes/No, multiple response, HOTSPOT y DRAG DROP), en orden aleatorio.</li>' +
-      '<li>Cada pregunta bien respondida vale <b>1 punto</b> (en las de varias partes, solo si todo es correcto). Las erróneas no restan.</li>' +
-      '<li>La nota es sobre <b>10</b> (' + D.questions.length + ' aciertos = 10). Se aprueba con un <b>5</b>. No hay límite de tiempo.</li>' +
+      PTS +
+      '<li>La nota es sobre <b>10</b> (' + D.questions.length + ' puntos = 10). Se aprueba con un <b>5</b>. No hay límite de tiempo.</li>' +
       '<li>Hay que responder <b>todas</b> las preguntas para poder terminar.</li>' +
       '<li>Los enunciados están en inglés, como en el examen. El botón <b>ES</b> de la barra lateral muestra la traducción al español.</li>' +
       '<li>Hazlo <b>una sola vez</b>: cada envío queda registrado para el instructor. Al terminar verás tu nota y la corrección.</li></ul>' :
       (SIM ? '<li>El banco tiene <b>' + D.questions.length + ' preguntas</b>. Puedes hacerlas todas o elegir un tramo (por ejemplo, de la 1 a la 20 hoy y de la 21 a la 40 otro día).</li><li>En cada pregunta puedes pulsar <b>Ver respuesta</b> para consultar la solución y su explicación; el instructor verá cuántas has consultado.</li><li>Las preguntas son de' : '<li>La prueba tiene <b>' + D.questions.length + ' preguntas</b> de') + ' los mismos tipos que el examen: multiple choice, multiple response, HOTSPOT, DRAG DROP y Build List Reorder' + (Object.keys(D.cases || {}).length ? ', y alguna de Case Study' : '') + '.</li>' +
-      '<li>Cada pregunta bien respondida vale <b>1 punto</b> (en las de varias partes, solo si todo es correcto). Las erróneas no restan.</li>' +
+      PTS +
       '<li>Hay que responder <b>todas</b> las preguntas para poder terminar. No hay límite de tiempo.</li>' +
       '<li>Los enunciados están en inglés, como en el examen. El botón <b>ES</b> de la barra lateral muestra la traducción al español.</li>' +
       '<li>Al terminar verás tu puntuación, las respuestas correctas y su explicación. El resultado se envía al instructor.</li></ul>') +
@@ -207,10 +210,24 @@
     ctrl.querySelector('#esChk').addEventListener('change', function (e) { ui.es = e.target.checked; lsSet('mb800-es', ui.es ? '1' : '0'); render(); });
     app.appendChild(box);
     var last = state.idx === QS().length - 1;
+    var jump = '<select class="jump" id="jump" aria-label="Ir a la pregunta">' + QS().map(function (x, i) {
+      return '<option value="' + i + '"' + (i === state.idx ? ' selected' : '') + '>Question ' + num(i) + (x.case ? ' · Case Study' : '') + (isAnswered(x) ? ' ✓' : '') + '</option>';
+    }).join('') + '</select>';
     var f = h('<div class="footer"><button class="navbtn" id="prev"' + (state.idx === 0 ? ' disabled' : '') + '><span class="chev l">‹</span>Previous</button>' +
-      '<button class="navbtn" id="next">' + (last ? 'Review' : 'Next') + '<span class="chev r">›</span></button></div>');
+      '<button class="navbtn" id="next">' + (last ? 'Review' : 'Next') + '<span class="chev r">›</span></button><label class="jumpwrap">Ir a ' + jump + '</label></div>');
     f.querySelector('#prev').addEventListener('click', function () { go(state.idx - 1); });
-    f.querySelector('#next').addEventListener('click', function () { if (last) { state.stage = 'review'; save(); render(); } else go(state.idx + 1); });
+    f.querySelector('#jump').addEventListener('change', function (e) { go(+e.target.value); });
+    f.querySelector('#next').addEventListener('click', function () {
+      if (last) { state.stage = 'review'; save(); render(); return; }
+      var nx = QS()[state.idx + 1];
+      if (nx.case && !q.case && !state.caseNotice) {
+        var nCase = QS().filter(function (x) { return x.case; }).length;
+        state.caseNotice = true; save();
+        modal('Empiezan las preguntas de Case Study', '<p style="margin:0">Has llegado al final de las preguntas normales. Las <b>' + nCase + '</b> siguientes son de <b>Case Study</b>: usan un escenario que puedes abrir arriba con <i>mostrar/ocultar escenario</i>. También hay que responderlas.</p>', 'Continuar', function () { go(state.idx + 1); });
+        return;
+      }
+      go(state.idx + 1);
+    });
     app.appendChild(f);
     return app;
   }
@@ -360,11 +377,11 @@
       var ok = isAnswered(q);
       return '<tr><td><a data-i="' + i + '">Question ' + num(i) + '</a></td><td>' + TYPE_LABEL[q.type] + (q.case ? ' · Case Study' : '') + (state.revealed && state.revealed[q.id] ? ' · <i>respuesta vista</i>' : '') + '</td><td>' + (ok ? '<span class="badge ok">Answered</span>' : '<span class="badge ko">Incomplete</span>') + '</td><td>' + (state.review[q.id] ? '<span class="badge flag">Review later</span>' : '') + '</td></tr>';
     }).join('');
-    var p = h('<section class="panel"><h1>Review</h1><p>Has respondido <b>' + done + ' de ' + n + '</b> preguntas. Haz clic en una pregunta para volver a ella.' + (done < n ? ' <span class="err">Debes responder todas las preguntas antes de terminar.</span>' : '') + '</p>' +
+    var p = h('<section class="panel"><h1>Review</h1><p>Has respondido <b>' + done + ' de ' + n + '</b> preguntas. Haz clic en una pregunta para volver a ella.' + (done < n ? (SIM ? ' <span class="err">Puedes terminar ya: al pulsar End Exam elegirás si corregir solo las respondidas o descartar el intento.</span>' : ' <span class="err">Debes responder todas las preguntas antes de terminar.</span>') : '') + '</p>' +
       '<table class="rv-table"><thead><tr><th>Question</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></section>');
     p.addEventListener('click', function (e) { var a = e.target.closest('[data-i]'); if (a) { state.stage = 'exam'; go(+a.getAttribute('data-i')); } });
     app.appendChild(p);
-    var f = h('<div class="footer"><button class="navbtn" id="back"><span class="chev l">‹</span>Back to questions</button><button class="navbtn" id="end"' + (done < n ? ' disabled' : '') + '>End Exam<span class="chev r">›</span></button></div>');
+    var f = h('<div class="footer"><button class="navbtn" id="back"><span class="chev l">‹</span>Back to questions</button><button class="navbtn" id="end"' + (done < n && !SIM ? ' disabled' : '') + '>End Exam<span class="chev r">›</span></button></div>');
     f.querySelector('#back').addEventListener('click', function () { state.stage = 'exam'; save(); render(); });
     f.querySelector('#end').addEventListener('click', tryEnd);
     app.appendChild(f);
@@ -385,6 +402,16 @@
 
   function tryEnd() {
     var n = QS().length, done = answeredCount();
+    if (done < n && SIM) {
+      var pend = n - done;
+      var m = h('<div class="modal-bg"><div class="modal" role="dialog" aria-modal="true"><h3>Terminar el simulacro</h3><div><p style="margin:0 0 8px">Te quedan <b>' + pend + '</b> pregunta' + (pend > 1 ? 's' : '') + ' sin responder de ' + n + '. ¿Qué quieres hacer?</p><ul style="margin:0;padding-left:20px;line-height:1.6"><li><b>Corregir lo respondido</b>: ' + (done === 1 ? 'se corrige y registra solo la respondida' : 'se corrigen y registran solo las ' + done + ' respondidas') + (done ? '' : ' (aún no has respondido ninguna)') + '.</li><li><b>Descartar intento</b>: no se corrige ni se registra nada y vuelves al inicio.</li></ul></div>' +
+        '<div class="row"><button class="btn-s" data-x>Seguir respondiendo</button><button class="btn-s" data-d>Descartar intento</button><button class="btn-p" data-ok' + (done ? '' : ' disabled') + '>Corregir lo respondido</button></div></div></div>');
+      document.body.appendChild(m);
+      m.querySelector('[data-x]').addEventListener('click', function () { m.remove(); });
+      m.querySelector('[data-d]').addEventListener('click', function () { m.remove(); var nm = state.name; lsDel(STORE); state = { name: nm, idx: 0, answers: {}, review: {}, start: 0, stage: 'welcome' }; render(); window.scrollTo(0, 0); });
+      m.querySelector('[data-ok]').addEventListener('click', function () { m.remove(); submit(true); });
+      return;
+    }
     if (done < n) {
       var miss = QS().map(function (q, i) { return isAnswered(q) ? null : num(i); }).filter(Boolean).join(', ');
       modal('Faltan respuestas', '<p style="margin:0">Debes responder todas las preguntas. Pendientes: <b>' + miss + '</b>.</p>', 'Ir a Review', function () { state.stage = 'review'; save(); render(); });
@@ -407,7 +434,9 @@
   }
 
   // ---------- submit ----------
-  function submit() {
+  function submit(partial) {
+    if (partial !== true) partial = !!state.partial;
+    state.partial = partial; save();
     var dur = elapsed();
     stopClock();
     $app.innerHTML = '';
@@ -417,7 +446,11 @@
     var p = h('<section class="panel"><div class="loading"><span class="spin"></span>Corrigiendo y enviando el resultado…</div></section>');
     app.appendChild(p); $app.appendChild(app);
     var payload = { lp: D.id, name: state.name, answers: state.answers, durationSec: dur, ua: navigator.userAgent.slice(0, 120) };
-    if (SIM) { payload.ids = QS().map(function (q) { return q.id; }); payload.revealed = Object.keys(state.revealed || {}); }
+    if (SIM) {
+      var sel = partial ? QS().filter(isAnswered) : QS();
+      payload.ids = sel.map(function (q) { return q.id; }); payload.revealed = Object.keys(state.revealed || {});
+      if (partial) payload.skipped = QS().length - sel.length;
+    }
     if (FINAL) payload.order = state.order;
     post(payload).then(function (res) {
       if (!res || !res.ok) throw new Error(res && res.error ? res.error : 'Respuesta no válida del servidor');
@@ -425,7 +458,7 @@
     }).catch(function (err) {
       p.innerHTML = '<p class="err">No se ha podido enviar la prueba: ' + esc(err.message) + '</p><p>Tus respuestas siguen guardadas en este navegador. Comprueba la conexión y vuelve a intentarlo.</p>';
       var f = h('<div class="footer"><button class="navbtn" id="retry">Reintentar</button><button class="navbtn alt" id="bk">Volver a Review</button></div>');
-      f.querySelector('#retry').addEventListener('click', submit);
+      f.querySelector('#retry').addEventListener('click', function () { submit(state.partial); });
       f.querySelector('#bk').addEventListener('click', function () { state.stage = 'review'; save(); render(); });
       app.appendChild(f);
     });
@@ -447,12 +480,14 @@
     var app = h('<main class="app"></main>');
     app.appendChild(topbar('Score Report'));
     var p = h('<section class="panel"><h1>' + esc(D.title) + '</h1><div style="color:#555">' + (SIM && state.from && (state.from > 1 || state.to < D.questions.length) ? 'Preguntas ' + state.from + '–' + state.to + ' · ' : '') + esc(r.name || state.name) + ' · ' + new Date().toLocaleDateString('es-ES') + ' · ' + Math.round((state.durationSec || 0) / 60) + ' min</div>' +
-      (FINAL ? '<div class="score"><span class="big">' + gradeTxt(r.grade) + ' / 10</span><span class="pct">' + r.score + ' de ' + r.total + ' aciertos · <b style="color:' + (r.passed ? '#107c10">APROBADO' : '#c50f1f">SUSPENSO') + '</b></span></div>'
-        : '<div class="score"><span class="big">' + r.score + ' / ' + r.total + '</span><span class="pct">' + pct + ' %</span></div>') +
+      (FINAL ? '<div class="score"><span class="big">' + gradeTxt(r.grade) + ' / 10</span><span class="pct">' + ptsTxt(r.score) + ' de ' + r.total + ' puntos · <b style="color:' + (r.passed ? '#107c10">APROBADO' : '#c50f1f">SUSPENSO') + '</b></span></div>'
+        : '<div class="score"><span class="big">' + ptsTxt(r.score) + ' / ' + r.total + '</span><span class="pct">' + pct + ' %</span></div>') +
       '<p style="margin:0 0 6px">El resultado se ha enviado al instructor. Revisa abajo las respuestas correctas y su explicación' + (ui.es ? '' : ' (pulsa <b>ES</b> para ver también la traducción de enunciados y opciones)') + '.</p></section>');
     r.results.forEach(function (res) {
       var q = optById(D.questions, res.id);
-      var card = h('<div class="res' + (res.correct ? '' : ' ko') + '"><h3>Question ' + res.n + ' <span class="badge ' + (res.correct ? 'ok">✔ Correcta · 1 punto' : 'ko">✘ Incorrecta · 0 puntos') + '</span>' + (res.revealed ? ' <span class="badge flag">respuesta vista</span>' : '') + '<span class="src">' + TYPE_LABEL[q.type] + ' · ' + esc(res.src || q.src) + '</span></h3>' +
+      var pts = res.points === undefined ? (res.correct ? 1 : 0) : res.points;
+      var badge = res.correct ? 'ok">✔ Correcta · 1 punto' : pts ? 'part">◐ Parcial · ' + ptsTxt(pts) + ' puntos' : 'ko">✘ Incorrecta · 0 puntos';
+      var card = h('<div class="res' + (res.correct ? '' : pts ? ' part' : ' ko') + '"><h3>Question ' + res.n + ' <span class="badge ' + badge + '</span>' + (res.revealed ? ' <span class="badge flag">respuesta vista</span>' : '') + '<span class="src">' + TYPE_LABEL[q.type] + ' · ' + esc(res.src || q.src) + '</span></h3>' +
         '<details class="qtext"><summary>Ver enunciado</summary>' + (q.case ? '<p><i>' + esc(D.cases[q.case].title) + '</i></p>' : '') + q.en + (ui.es ? '<div class="es-block">' + q.es + '</div>' : '') + '</details>' +
         '<div class="ans"><b>Tu respuesta</b><div>' + describe(q, state.answers[q.id]) + '</div><b>Respuesta correcta</b><div>' + describe(q, res.answer) + '</div></div>' +
         '<div class="expl"><b>Por qué:</b> ' + res.expl + (res.ref ? ' <br><a href="' + esc(res.ref) + '" target="_blank" rel="noopener">Microsoft Learn ↗</a>' : '') + '</div>' +
